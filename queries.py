@@ -268,7 +268,7 @@ class QueryService:
         else:
             # Escape single quotes defensively
             safe_province   = location.replace("'", "''")
-            province_clause = f"province = '{safe_province}'"
+            province_clause = f"province = '{safe_province} Region'"
             default_zoom    = PROVINCE_ZOOM
 
         query = f"""
