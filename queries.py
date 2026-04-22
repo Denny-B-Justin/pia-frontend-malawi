@@ -1,11 +1,11 @@
 """
 queries.py
-Databricks SQL data-access layer for the Zambia Health Access dashboard.
+Databricks SQL data-access layer for the Malawi Health Access dashboard.
 
 Two new public methods added in this revision:
   • get_base_dashboard_data(location, distance_km)
         → fetches center coords, boundary WKT, baseline access %, and total
-          new facilities from base_dashboard_data_zmb for any location
+          new facilities from base_dashboard_data_mwi for any location
           (country or province) and distance value.
 
   • get_accessibility_results_for_location(location, distance_km)
@@ -13,13 +13,13 @@ Two new public methods added in this revision:
           Handles all 44 tables (11 sessions × 4 km bands).
 
 Table-naming convention (44 tables total):
-  Country (Zambia):
-    Driving  → lgu_accessibility_results_zmb_5km / _10km
-    Walking  → lgu_accessibility_results_zmb_30min / _1hr
+  Country (Malawi):
+    Driving  → lgu_accessibility_results_mwi_5km / _10km
+    Walking  → lgu_accessibility_results_mwi_30min / _1hr
 
   Province (10 × 4):
-    Driving  → lgu_accessibility_results_zmb_{slug}_province_5km / _10km
-    Walking  → lgu_accessibility_results_zmb_{slug}_province_2km / _4km
+    Driving  → lgu_accessibility_results_mwi_{slug}_province_5km / _10km
+    Walking  → lgu_accessibility_results_mwi_{slug}_province_2km / _4km
                (2 km ≈ 30 min walk; 4 km ≈ 1 hr walk)
 """
 
@@ -43,9 +43,9 @@ except ImportError:
                         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     logging.warning("python-dotenv not installed — reading env vars from system only")
 
-ZAMBIA_CATALOG    = os.getenv("ZAMBIA_CATALOG",    "prd_mega")
-FACILITIES_SCHEMA = os.getenv("FACILITIES_SCHEMA", "pim")
-RESULTS_SCHEMA    = os.getenv("RESULTS_SCHEMA",    "pim")
+MALAWI_CATALOG    = os.getenv("MALAWI_CATALOG",    "prd_mega")
+FACILITIES_SCHEMA = os.getenv("FACILITIES_SCHEMA", "sgpbpi163")
+RESULTS_SCHEMA    = os.getenv("RESULTS_SCHEMA",    "sgpbpi163")
 
 QUERY_CACHE_TTL_SECONDS = int(os.getenv("QUERY_CACHE_TTL_SECONDS", "300"))
 QUERY_CACHE_MAX_ENTRIES = int(os.getenv("QUERY_CACHE_MAX_ENTRIES", "256"))
@@ -176,41 +176,41 @@ class QueryService:
         Backward-compat wrapper — returns all national facilities.
         Prefer get_existing_facilities_for_location() for province-scoped views.
         """
-        return self.get_existing_facilities_for_location("zambia")
+        return self.get_existing_facilities_for_location("malawi")
 
-    def get_existing_facilities_for_location(self, location: str = "zambia") -> pd.DataFrame:
+    def get_existing_facilities_for_location(self, location: str = "malawi") -> pd.DataFrame:
         """
         Fetch existing health facilities for the given location.
 
         Table resolution:
-          Zambia (country)  → health_facilities_zmb
-          Province          → health_facilities_zmb_osm_{slug}_province
+          Malawi (country)  → health_facilities_mwi
+          Province          → health_facilities_mwi_osm_{slug}_province
 
         Each province has its own dedicated OSM-derived facility table so that
         the map only shows facilities relevant to the selected province — no
         country-wide scatter bleed.
 
-        location: "zambia" for the full national table, or a province display
+        location: "malawi" for the full national table, or a province display
                   name (e.g. "Central", "North-Western") for the province table.
         """
         from constants import PROVINCE_SLUGS
 
-        loc = (location or "zambia").strip()
+        loc = (location or "malawi").strip()
 
-        if loc.lower() == "zambia":
-            table = "health_facilities_zmb"
+        if loc.lower() == "malawi":
+            table = "health_facilities_mwi"
         else:
             slug  = PROVINCE_SLUGS.get(
                 loc,
                 loc.lower().replace("-", "").replace(" ", "_"),
             )
-            table = f"health_facilities_zmb_osm_{slug}_province"
+            table = f"health_facilities_mwi_osm_{slug}_province"
 
         logging.info("Fetching existing facilities from table: %s", table)
 
         query = f"""
             SELECT id, lat, lon, name
-            FROM {ZAMBIA_CATALOG}.{FACILITIES_SCHEMA}.{table}
+            FROM {MALAWI_CATALOG}.{FACILITIES_SCHEMA}.{table}
             ORDER BY id ASC
         """
         df = self.execute_query(query)
@@ -224,26 +224,26 @@ class QueryService:
         return df.dropna(subset=["lat", "lon"]).reset_index(drop=True)
 
     def get_accessibility_results(self) -> pd.DataFrame:
-        """Backward-compat wrapper — fetches the default 10 km Zambia results."""
-        return self.get_accessibility_results_for_location("zambia", 10)
+        """Backward-compat wrapper — fetches the default 10 km Malawi results."""
+        return self.get_accessibility_results_for_location("malawi", 10)
 
     def get_accessibility_results_by_distance(self, distance_km=10) -> pd.DataFrame:
-        """Backward-compat wrapper — fetches Zambia-level results for the given distance."""
-        return self.get_accessibility_results_for_location("zambia", distance_km)
+        """Backward-compat wrapper — fetches Malawi-level results for the given distance."""
+        return self.get_accessibility_results_for_location("malawi", distance_km)
 
     # ── NEW: location-aware queries ───────────────────────────────────────────
 
     def get_base_dashboard_data(
         self,
-        location: str = "zambia",
+        location: str = "malawi",
         distance_km=5,
     ) -> dict:
         """
         Fetch map-center coordinates, boundary WKT, baseline access %, and
-        total new facilities from base_dashboard_data_zmb for the given
+        total new facilities from base_dashboard_data_mwi for the given
         location and distance value.
 
-        location   : "zambia" for the whole country; province display name
+        location   : "malawi" for the whole country; province display name
                      (e.g. "Lusaka", "Central") for a province view.
         distance_km: 5 | 10 | "30min" | "1hr"
 
@@ -253,7 +253,7 @@ class QueryService:
         """
         from constants import (
             DISTANCE_KM_MAP,
-            ZAMBIA_CENTER_LAT, ZAMBIA_CENTER_LON,
+            MALAWI_CENTER_LAT, MALAWI_CENTER_LON,
             MAP_ZOOM, PROVINCE_ZOOM,
         )
 
@@ -262,7 +262,7 @@ class QueryService:
             distance_km if distance_km is not None else 5, 5
         )
 
-        if location.lower() == "zambia":
+        if location.lower() == "malawi":
             province_clause = "province IS NULL"
             default_zoom    = MAP_ZOOM
         else:
@@ -274,8 +274,8 @@ class QueryService:
         query = f"""
             SELECT central_lat, central_long, current_access,
                    total_new_facilities, geometry_wkt
-            FROM {ZAMBIA_CATALOG}.{FACILITIES_SCHEMA}.base_dashboard_data_zmb
-            WHERE country = 'Zambia'
+            FROM {MALAWI_CATALOG}.{FACILITIES_SCHEMA}.base_dashboard_data_mwi
+            WHERE country = 'Malawi'
               AND {province_clause}
               AND distance_km = {dist_int}
             LIMIT 1
@@ -283,8 +283,8 @@ class QueryService:
         df = self.execute_query(query)
 
         fallback = {
-            "center_lat":          ZAMBIA_CENTER_LAT,
-            "center_lon":          ZAMBIA_CENTER_LON,
+            "center_lat":          MALAWI_CENTER_LAT,
+            "center_lon":          MALAWI_CENTER_LON,
             "zoom":                default_zoom,
             "geometry_wkt":        None,
             "current_access":      62.24,
@@ -293,7 +293,7 @@ class QueryService:
         }
         if df.empty:
             logging.warning(
-                "base_dashboard_data_zmb returned no rows for location=%s dist=%s",
+                "base_dashboard_data_mwi returned no rows for location=%s dist=%s",
                 location, dist_int,
             )
             return fallback
@@ -313,8 +313,8 @@ class QueryService:
                 return default
 
         return {
-            "center_lat":          _safe_float(row.get("central_lat"),          ZAMBIA_CENTER_LAT),
-            "center_lon":          _safe_float(row.get("central_long"),          ZAMBIA_CENTER_LON),
+            "center_lat":          _safe_float(row.get("central_lat"),          MALAWI_CENTER_LAT),
+            "center_lon":          _safe_float(row.get("central_long"),          MALAWI_CENTER_LON),
             "zoom":                default_zoom,
             "geometry_wkt":        str(row["geometry_wkt"]) if pd.notna(row.get("geometry_wkt")) else None,
             "current_access":      _safe_float(row.get("current_access"),        62.24),
@@ -324,38 +324,38 @@ class QueryService:
 
     def get_accessibility_results_for_location(
         self,
-        location: str = "zambia",
+        location: str = "malawi",
         distance_km=5,
     ) -> pd.DataFrame:
         """
         Fetch MCLP optimisation results for the given location and distance.
 
         Table-name resolution:
-          Zambia country, Driving 5 km   → lgu_accessibility_results_zmb_5km
-          Zambia country, Driving 10 km  → lgu_accessibility_results_zmb_10km
-          Zambia country, Walking 30 min → lgu_accessibility_results_zmb_2km
-          Zambia country, Walking 1 hr   → lgu_accessibility_results_zmb_4km
+          Malawi country, Driving 5 km   → lgu_accessibility_results_mwi_5km
+          Malawi country, Driving 10 km  → lgu_accessibility_results_mwi_10km
+          Malawi country, Walking 30 min → lgu_accessibility_results_mwi_2km
+          Malawi country, Walking 1 hr   → lgu_accessibility_results_mwi_4km
 
-          Province, Driving 5 km         → lgu_accessibility_results_zmb_{slug}_province_5km
-          Province, Driving 10 km        → lgu_accessibility_results_zmb_{slug}_province_10km
-          Province, Walking 30 min       → lgu_accessibility_results_zmb_{slug}_province_2km
-          Province, Walking 1 hr         → lgu_accessibility_results_zmb_{slug}_province_4km
+          Province, Driving 5 km         → lgu_accessibility_results_mwi_{slug}_province_5km
+          Province, Driving 10 km        → lgu_accessibility_results_mwi_{slug}_province_10km
+          Province, Walking 30 min       → lgu_accessibility_results_mwi_{slug}_province_2km
+          Province, Walking 1 hr         → lgu_accessibility_results_mwi_{slug}_province_4km
         """
         from constants import PROVINCE_SLUGS
 
-        loc = (location or "zambia").strip()
+        loc = (location or "malawi").strip()
 
-        if loc.lower() == "zambia":
+        if loc.lower() == "malawi":
             # Country-level: keep explicit 30min / 1hr table names
             suffix_map = {5: "5km", 10: "10km", "30min": "2km", "1hr": "4km"}
             suffix = suffix_map.get(distance_km, "5km")
-            table  = f"lgu_accessibility_results_zmb_{suffix}"
+            table  = f"lgu_accessibility_results_mwi_{suffix}"
         else:
             # Province-level: walking maps to 2 km / 4 km equivalents
             slug       = PROVINCE_SLUGS.get(loc, loc.lower().replace("-", "_").replace(" ", "_"))
             suffix_map = {5: "5km", 10: "10km", "30min": "2km", "1hr": "4km"}
             suffix     = suffix_map.get(distance_km, "5km")
-            table      = f"lgu_accessibility_results_zmb_{slug}_province_{suffix}"
+            table      = f"lgu_accessibility_results_mwi_{slug}_province_{suffix}"
 
         logging.info("Fetching results from table: %s", table)
 
@@ -367,7 +367,7 @@ class QueryService:
                 lon,
                 total_population_access_pct,
                 district
-            FROM {ZAMBIA_CATALOG}.{RESULTS_SCHEMA}.{table}
+            FROM {MALAWI_CATALOG}.{RESULTS_SCHEMA}.{table}
             ORDER BY total_facilities ASC
         """
         df = self.execute_query(query)
@@ -382,27 +382,27 @@ class QueryService:
     def get_user_credentials(self) -> Dict[str, str]:
         query = f"""
             SELECT username, password_hash
-            FROM {ZAMBIA_CATALOG}.{FACILITIES_SCHEMA}.user_credentials
+            FROM {MALAWI_CATALOG}.{FACILITIES_SCHEMA}.user_credentials
         """
         df = self.execute_query(query)
         return dict(zip(df["username"], df["password_hash"]))
 
     def get_gadm_boundary_wkt(self) -> Optional[str]:
         """
-        Return the Zambia national boundary geometry as a WKT string.
+        Return the Malawi national boundary geometry as a WKT string.
         Kept for backward compatibility; prefer get_base_dashboard_data().
         """
         query = f"""
             SELECT geometry_wkt
-            FROM {ZAMBIA_CATALOG}.{FACILITIES_SCHEMA}.gadm_boundaries_zmb
+            FROM {MALAWI_CATALOG}.{FACILITIES_SCHEMA}.gadm_boundaries_mwi
             LIMIT 1
         """
         df = self.execute_query(query)
         if df.empty:
-            logging.warning("gadm_boundaries_zmb returned no rows")
+            logging.warning("gadm_boundaries_mwi returned no rows")
             return None
         val = df["geometry_wkt"].iloc[0]
         if val is None:
-            logging.warning("gadm_boundaries_zmb geometry_wkt is NULL")
+            logging.warning("gadm_boundaries_mwi geometry_wkt is NULL")
             return None
         return str(val)

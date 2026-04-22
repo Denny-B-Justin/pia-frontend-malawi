@@ -1,12 +1,12 @@
 """
 app.py
-Zambia Health Access – Facility Placement Optimisation Dashboard
+Malawi Health Access – Facility Placement Optimisation Dashboard
 
 2025-07 revision
   • Location dropdown added to the header (left of legend pills).
-    Supports Zambia country-level and all 10 provinces.
+    Supports Malawi country-level and all 10 provinces.
   • Map centre, zoom, boundary WKT, and baseline access % are all fetched
-    dynamically from base_dashboard_data_zmb so every location switch
+    dynamically from base_dashboard_data_mwi so every location switch
     produces a correctly centred, correctly scaled, correctly scoped view.
   • Travel mode drives the Measure (Distance / Time) and Value dropdowns:
       Driving  → Distance → 5 km / 10 km
@@ -46,8 +46,8 @@ from constants import (
     BASELINE_ACCESS_PCT_30MIN,
     BASELINE_ACCESS_PCT_1HR,
     MAX_NEW_FACILITIES,
-    ZAMBIA_CENTER_LAT,
-    ZAMBIA_CENTER_LON,
+    MALAWI_CENTER_LAT,
+    MALAWI_CENTER_LON,
     MAP_ZOOM,
     PROVINCES,
     PROVINCE_SLUGS,
@@ -72,7 +72,7 @@ db = QueryService.get_instance()
 def _get_baseline(distance_km, base_data: Optional[dict] = None) -> float:
     """
     Return the correct baseline access %.
-    Prefers the live value from base_dashboard_data_zmb (via store-base-data).
+    Prefers the live value from base_dashboard_data_mwi (via store-base-data).
     Falls back to hardcoded constants when the store is not yet populated or
     the query failed.
     """
@@ -91,25 +91,25 @@ def _get_baseline(distance_km, base_data: Optional[dict] = None) -> float:
     return BASELINE_ACCESS_PCT_10KM
 
 
-# ── Startup: pre-load Zambia country boundary for the first render ─────────────
+# ── Startup: pre-load Malawi country boundary for the first render ─────────────
 # store-base-data is populated by a callback after the first render cycle.
 # _BOUNDARY_WKT serves as a synchronous fallback so the very first map render
 # is not blank.
 
 _BOUNDARY_WKT: Optional[str] = None
 try:
-    _init_base = db.get_base_dashboard_data("zambia", 5)
+    _init_base = db.get_base_dashboard_data("malawi", 5)
     _BOUNDARY_WKT = _init_base.get("geometry_wkt")
     logging.info("Startup base data loaded (boundary_wkt len=%d)", len(_BOUNDARY_WKT or ""))
 except Exception as _e:
     logging.warning("Startup base data load failed: %s", _e)
 
 # ── Location dropdown options ─────────────────────────────────────────────────
-# Zambia is the country-level entry; provinces appear as an indented sub-list.
+# Malawi is the country-level entry; provinces appear as an indented sub-list.
 # The separator is disabled so it cannot be selected.
 
 LOCATION_DROPDOWN_OPTIONS = [
-    {"label": "Zambia", "value": "zambia"},
+    {"label": "Malawi", "value": "malawi"},
     {"label": "── Provinces ──", "value": "_sep", "disabled": True},
 ] + [
     {"label": f"      {p}", "value": p}
@@ -567,7 +567,7 @@ app.layout = html.Div(
         dcc.Store(id="store-distance-km", data=5),
         dcc.Store(id="store-map-active",  data=False),
         # NEW stores ──────────────────────────────────────────────────────────
-        dcc.Store(id="store-location",    data="zambia"),   # selected location
+        dcc.Store(id="store-location",    data="malawi"),   # selected location
         dcc.Store(id="store-base-data",   data=None),       # base dashboard data
 
         # ── Header ────────────────────────────────────────────────────────────
@@ -578,7 +578,7 @@ app.layout = html.Div(
                 # Left: brand
                 html.Div([
                     html.Div(
-                        "Zambia Health Access",
+                        "Malawi Health Access",
                         style={
                             "fontFamily": FONT_BODY,
                             "fontSize": "1.2rem",
@@ -604,7 +604,7 @@ app.layout = html.Div(
                     style={"display": "flex", "gap": "10px", "alignItems": "center"},
                     children=[
 
-                        # ── Location dropdown (hierarchical: Zambia + 10 provinces) ──
+                        # ── Location dropdown (hierarchical: Malawi + 10 provinces) ──
                         html.Div(
                             style={"display": "flex", "flexDirection": "column"},
                             children=[
@@ -619,7 +619,7 @@ app.layout = html.Div(
                                 dcc.Dropdown(
                                     id="dropdown-location",
                                     options=LOCATION_DROPDOWN_OPTIONS,
-                                    value="zambia",
+                                    value="malawi",
                                     clearable=False,
                                     searchable=False,
                                     placeholder="Choose location",
@@ -658,7 +658,7 @@ app.layout = html.Div(
                                 "verticalAlign": "middle",
                                 "marginBottom": "1px",
                             }),
-                            html.Span(id="legend-boundary-label", children="Zambia boundary"),
+                            html.Span(id="legend-boundary-label", children="Malawi boundary"),
                         ]),
                     ],
                 ),
@@ -761,7 +761,7 @@ app.layout = html.Div(
                                                     html.Div(
                                                         [
                                                             "Number of health facilities in ",
-                                                            html.Span(id="ca-location-label", children="Zambia"),
+                                                            html.Span(id="ca-location-label", children="Malawi"),
                                                         ],
                                                         style=BIG_NUM_LABEL_STYLE,
                                                     ),
@@ -779,7 +779,7 @@ app.layout = html.Div(
                                                             "Percentage of population with access to ",
                                                             html.I("all"),
                                                             " health facilities in ",
-                                                            html.Span(id="location-label-detail", children="Zambia"),
+                                                            html.Span(id="location-label-detail", children="Malawi"),
                                                             " within ",
                                                             html.U(id="distance-value-label", children="5 km"),
                                                             " travel ",
@@ -948,7 +948,7 @@ app.layout = html.Div(
 
                                 # Footer
                                 html.Div(
-                                    "World Bank · Public Infrastructure Investment · GoAT · Zambia 2025",
+                                    "World Bank · Public Infrastructure Investment · GoAT · Malawi 2025",
                                     style=FOOTER_STYLE,
                                 ),
                             ],
@@ -993,7 +993,7 @@ def _make_graph(figure: go.Figure, key: str) -> html.Div:
 )
 def update_location_store(value):
     """Persist the selected location (country or province) into the store."""
-    return value if value and value != "_sep" else "zambia"
+    return value if value and value != "_sep" else "malawi"
 
 
 # ── 2. Fetch base dashboard data (center, boundary, baseline) ─────────────────
@@ -1008,7 +1008,7 @@ def fetch_base_data(location, distance_km):
     Re-fetch base dashboard data whenever location or distance changes.
     This drives map centre, zoom, boundary WKT, and baseline access %.
     """
-    loc = location or "zambia"
+    loc = location or "malawi"
     km  = distance_km if distance_km is not None else 5
     try:
         data = db.get_base_dashboard_data(loc, km)
@@ -1021,9 +1021,9 @@ def fetch_base_data(location, distance_km):
         logging.error("fetch_base_data error: %s", exc)
         from constants import PROVINCE_ZOOM, MAP_ZOOM
         return {
-            "center_lat":          ZAMBIA_CENTER_LAT,
-            "center_lon":          ZAMBIA_CENTER_LON,
-            "zoom":                MAP_ZOOM if loc == "zambia" else PROVINCE_ZOOM,
+            "center_lat":          MALAWI_CENTER_LAT,
+            "center_lon":          MALAWI_CENTER_LON,
+            "zoom":                MAP_ZOOM if loc == "malawi" else PROVINCE_ZOOM,
             "geometry_wkt":        _BOUNDARY_WKT,
             "current_access":      _get_baseline(km),
             "total_new_facilities": MAX_NEW_FACILITIES,
@@ -1041,9 +1041,9 @@ def fetch_existing_facilities(location):
     """
     Load existing health facilities scoped to the selected location.
 
-    When location == "zambia" the full national table is queried.
+    When location == "malawi" the full national table is queried.
     For any province the dedicated per-province OSM table is used:
-        health_facilities_zmb_osm_{slug}_province
+        health_facilities_mwi_osm_{slug}_province
 
     This means the map, the KPI count ("Number of health facilities"), and
     the baseline facility count used by the accessibility chart all reflect
@@ -1053,7 +1053,7 @@ def fetch_existing_facilities(location):
     QueryService caches each table result independently, so switching
     between provinces after the first load is near-instant.
     """
-    loc = location or "zambia"
+    loc = location or "malawi"
     try:
         df = db.get_existing_facilities_for_location(loc)
         logging.info("Loaded %d facilities for location='%s'", len(df), loc)
@@ -1074,7 +1074,7 @@ def fetch_existing_facilities(location):
 )
 def fetch_accessibility_results(distance_km, location):
     """Re-fetch results whenever distance or location changes."""
-    loc = location or "zambia"
+    loc = location or "malawi"
     km  = distance_km if distance_km is not None else 5
     try:
         df = db.get_accessibility_results_for_location(loc, km)
@@ -1179,15 +1179,15 @@ def update_travel_mode_description(travel_mode):
     return [html.I("distance"), " by driving"]
 
 
-# ── 12. Legend boundary label (shows "Zambia boundary" or "{Province} boundary") ─
+# ── 12. Legend boundary label (shows "Malawi boundary" or "{Province} boundary") ─
 
 @app.callback(
     Output("legend-boundary-label", "children"),
     Input("store-location", "data"),
 )
 def update_legend_boundary_label(location):
-    if not location or location == "zambia":
-        return "Zambia boundary"
+    if not location or location == "malawi":
+        return "Malawi boundary"
     return f"{location} boundary"
 
 
@@ -1199,8 +1199,8 @@ def update_legend_boundary_label(location):
 )
 def update_location_label_detail(location):
     """Display the selected location (country or province) in the accessibility label."""
-    if not location or location == "zambia":
-        return "Zambia"
+    if not location or location == "malawi":
+        return "Malawi"
     # Format province name: capitalize first letter of each word
     return location.title()
 
@@ -1213,8 +1213,8 @@ def update_location_label_detail(location):
 )
 def update_ca_location_label(location):
     """Display the selected location in the facilities count label."""
-    if not location or location == "zambia":
-        return "Zambia"
+    if not location or location == "malawi":
+        return "Malawi"
     return location.title()
 
 
@@ -1341,20 +1341,20 @@ def update_map(n_clicks, existing_records, distance_km, n_new, base_data,
     km     = distance_km or 5
     n_new  = n_new or 0
     clicks = n_clicks or 0
-    loc    = (location or "zambia").lower().replace(" ", "_").replace("-", "_")
+    loc    = (location or "malawi").lower().replace(" ", "_").replace("-", "_")
 
     triggered = ctx.triggered_id
 
     # ── Extract dynamic map config from base_data ──────────────────────────────
     boundary_wkt = _BOUNDARY_WKT   # synchronous startup fallback
-    center_lat   = ZAMBIA_CENTER_LAT
-    center_lon   = ZAMBIA_CENTER_LON
+    center_lat   = MALAWI_CENTER_LAT
+    center_lon   = MALAWI_CENTER_LON
     zoom         = MAP_ZOOM
 
     if base_data:
         boundary_wkt = base_data.get("geometry_wkt") or _BOUNDARY_WKT
-        center_lat   = base_data.get("center_lat",  ZAMBIA_CENTER_LAT)
-        center_lon   = base_data.get("center_lon",  ZAMBIA_CENTER_LON)
+        center_lat   = base_data.get("center_lat",  MALAWI_CENTER_LAT)
+        center_lon   = base_data.get("center_lon",  MALAWI_CENTER_LON)
         zoom         = base_data.get("zoom",        MAP_ZOOM)
 
     # ── No data yet ────────────────────────────────────────────────────────────

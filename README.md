@@ -1,11 +1,11 @@
-# Zambia Health Facility Accessibility Dashboard
+# Malawi Health Facility Accessibility Dashboard
 
-A **Databricks Data App** built with Dash and Folium that visualises the location and population accessibility of health facilities across Zambia. It allows users to simulate the addition of up to 30 optimally-placed new facilities and instantly see the projected improvement in population coverage.
+A **Databricks Data App** built with Dash and Folium that visualises the location and population accessibility of health facilities across Malawi. It allows users to simulate the addition of up to 30 optimally-placed new facilities and instantly see the projected improvement in population coverage.
 
 ---
 World Bank Data Analytics: https://datanalytics.worldbank.org/content/1cc36c57-f12d-4aa8-92a2-196bb0ea605f/
 
-Zambia Geospatial Hub: https://zmb-geowb.hub.arcgis.com/apps/4914d79a40414336998281d0827847a3/explore
+Malawi Geospatial Hub: https://mwi-geowb.hub.arcgis.com/apps/4914d79a40414336998281d0827847a3/explore
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ Zambia Geospatial Hub: https://zmb-geowb.hub.arcgis.com/apps/4914d79a40414336998
 
 This dashboard is part of the **GoAT (Geospatial Optimisation and Accessibility Tool)** initiative. It connects to Unity Catalog tables in Databricks to visualise:
 
-- All **existing** health facilities in Zambia (~1,258 sites)
+- All **existing** health facilities in Malawi (~1,258 sites)
 - **Proposed new** facility locations ranked by optimisation score
 - **Population accessibility** percentage before and after simulated additions
 
@@ -92,8 +92,8 @@ your-app/
 │   In-memory TTL Cache (5 min, 256 entry max)            │
 │   └── Databricks SQL Connector                          │
 │       └── Unity Catalog (prd_mega)                      │
-│           ├── pim.health_facilities_zmb            │
-│           └── pim.lgu_accessibility_results_zmb  │
+│           ├── sgpbpi163.health_facilities_mwi            │
+│           └── sgpbpi163.lgu_accessibility_results_mwi  │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -106,8 +106,8 @@ Data is fetched once on page load into Dash `dcc.Store` components. All subseque
 
 | Table | Schema | Description |
 |---|---|---|
-| `health_facilities_zmb` | `prd_mega.pim` | All existing health facilities — `id`, `lat`, `lon`, `name` |
-| `lgu_accessibility_results_zmb` | `prd_mega.pim` | Optimisation results — ranked new facility locations with cumulative accessibility % |
+| `health_facilities_mwi` | `prd_mega.sgpbpi163` | All existing health facilities — `id`, `lat`, `lon`, `name` |
+| `lgu_accessibility_results_mwi` | `prd_mega.sgpbpi163` | Optimisation results — ranked new facility locations with cumulative accessibility % |
 
 **Population data:** WorldPop 2025 constrained 100m raster (pre-processed in `01_extract.ipynb`)
 
@@ -121,8 +121,8 @@ Data is fetched once on page load into Dash `dcc.Store` components. All subseque
 
 - Python **3.10+**
 - Access to the Databricks workspace with:
-  - Read permission on `prd_mega.pim.health_facilities_zmb`
-  - Read permission on `prd_mega.pim.lgu_accessibility_results_zmb`
+  - Read permission on `prd_mega.sgpbpi163.health_facilities_mwi`
+  - Read permission on `prd_mega.sgpbpi163.lgu_accessibility_results_mwi`
   - A running **SQL Warehouse** (serverless recommended)
 - Either a **Personal Access Token** (local dev) or **Service Principal** (production)
 
@@ -181,9 +181,9 @@ DATABRICKS_CLIENT_SECRET= "YOUR_CLIENT_SECRET_HERE"
 # Generate with: python -c "import secrets; print(secrets.token_hex(32))"
 SECRET_KEY=<your-random-secret-key>
 
-ZAMBIA_CATALOG=prd_mega
-FACILITIES_SCHEMA=pim
-RESULTS_SCHEMA=pim
+MALAWI_CATALOG=prd_mega
+FACILITIES_SCHEMA=sgpbpi163
+RESULTS_SCHEMA=sgpbpi163
 
 QUERY_CACHE_TTL_SECONDS=300
 QUERY_CACHE_MAX_ENTRIES=256
@@ -202,6 +202,6 @@ Then open your browser at:
 http://127.0.0.1:8050/
 ```
 
-You should see the dashboard load with the map of Zambia and all existing facilities as orange dots. Use the slider in the header to simulate adding new facilities.
+You should see the dashboard load with the map of Malawi and all existing facilities as orange dots. Use the slider in the header to simulate adding new facilities.
 
 ---

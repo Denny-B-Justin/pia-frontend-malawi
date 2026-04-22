@@ -1,6 +1,6 @@
 """
 auth.py
-Authentication helpers for the Zambia Health Access dashboard.
+Authentication helpers for the Malawi Health Access dashboard.
 
 Set AUTH_ENABLED=true in your environment to require login.
 When AUTH_ENABLED is false (default) any username/password passes through,

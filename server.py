@@ -15,7 +15,7 @@ from flask_login import LoginManager
 from auth import User
 
 server = Flask(__name__)
-server.secret_key = os.getenv("SECRET_KEY", "zambia-health-access-dev-key")
+server.secret_key = os.getenv("SECRET_KEY", "malawi-health-access-dev-key")
 
 login_manager = LoginManager()
 login_manager.login_view = "/login"

@@ -1,6 +1,6 @@
 """
 utils.py
-Map, chart, and table helpers for the Zambia Health Access dashboard.
+Map, chart, and table helpers for the Malawi Health Access dashboard.
 
 Map approach change:
   Folium + html.Iframe(srcDoc=...) was replaced with plotly go.Scattermap
@@ -24,13 +24,13 @@ import plotly.graph_objects as go
 from typing import Dict, List, Optional, Tuple
 from constants import (
     BASELINE_ACCESS_PCT,
-    ZAMBIA_CENTER_LAT,
-    ZAMBIA_CENTER_LON,
+    MALAWI_CENTER_LAT,
+    MALAWI_CENTER_LON,
     MAP_ZOOM,
 )
 
-# Zambia 2025 population estimate — used for "new people reached" calculation
-ZAMBIA_POPULATION = 21_559_131
+# Malawi 2025 population estimate — used for "new people reached" calculation
+MALAWI_POPULATION = 21_559_131
 
 _CLR_BOUNDARY      = "#F97316"               # orange line
 _CLR_BOUNDARY_FILL = "rgba(249,115,22,0.05)" # light beige/orange fill (low opacity)
@@ -101,8 +101,8 @@ def build_standard_map(
     boundary_wkt: Optional[str] = None,
     map_height_px: Optional[int] = None,
     uirevision: str = "standard",
-    center_lat: float = ZAMBIA_CENTER_LAT,
-    center_lon: float = ZAMBIA_CENTER_LON,
+    center_lat: float = MALAWI_CENTER_LAT,
+    center_lon: float = MALAWI_CENTER_LON,
     zoom: float = MAP_ZOOM,
 ) -> go.Figure:
     """
@@ -192,8 +192,8 @@ def build_map_figure(
     boundary_wkt: Optional[str] = None,
     map_height_px: Optional[int] = None,
     uirevision: str = "map",
-    center_lat: float = ZAMBIA_CENTER_LAT,
-    center_lon: float = ZAMBIA_CENTER_LON,
+    center_lat: float = MALAWI_CENTER_LAT,
+    center_lon: float = MALAWI_CENTER_LON,
     zoom: float = MAP_ZOOM,
 ) -> go.Figure:
     """
@@ -502,6 +502,6 @@ def get_recommended_table_rows(
             "lon_dms":    _to_dms(float(row["lon"]), is_lat=False),
             "lat_dms":    _to_dms(float(row["lat"]), is_lat=True),
             "district":   row.get("district") or "—",
-            "new_people": max(0, int(deltas[i] / 100 * ZAMBIA_POPULATION)),
+            "new_people": max(0, int(deltas[i] / 100 * MALAWI_POPULATION)),
         })
     return result
