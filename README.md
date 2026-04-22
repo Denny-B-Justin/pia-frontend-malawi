@@ -3,9 +3,9 @@
 A **Databricks Data App** built with Dash and Folium that visualises the location and population accessibility of health facilities across Malawi. It allows users to simulate the addition of up to 30 optimally-placed new facilities and instantly see the projected improvement in population coverage.
 
 ---
-World Bank Data Analytics: https://datanalytics.worldbank.org/content/1cc36c57-f12d-4aa8-92a2-196bb0ea605f/
+World Bank Data Analytics:
 
-Malawi Geospatial Hub: https://mwi-geowb.hub.arcgis.com/apps/4914d79a40414336998281d0827847a3/explore
+Malawi Geospatial Hub: 
 
 ## Table of Contents
 
