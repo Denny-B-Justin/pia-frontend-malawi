@@ -1,0 +1,9 @@
+dash
+dash-bootstrap-components
+folium
+databricks-sql-connector
+databricks-sdk
+flask-login
+pandas
+python-dotenv
+bcrypt

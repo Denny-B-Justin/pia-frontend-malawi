@@ -1,0 +1,40 @@
+/* ── Global resets ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #F8FAFC;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove default Bootstrap card body padding */
+.card-body { padding: 0 !important; }
+
+/* Thin light scrollbar for the right stats pane */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: #F1F5F9; }
+::-webkit-scrollbar-thumb  { background: #CBD5E1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* ── +/- stepper button hover ────────────────────────────────────────────────── */
+button:hover  { background: #F1F5F9 !important; color: #4F46E5 !important; }
+button:active { background: #E0E7FF !important; color: #3730A3 !important; }
+
+/* ── Plotly map graph — fill flex container exactly ──────────────────────────── */
+#map-graph,
+#map-graph .js-plotly-plot,
+#map-graph .plot-container,
+#map-graph .plotly {
+  width: 100% !important;
+  height: 100% !important;
+}
+/* Ensure the SVG/canvas layer also fills the container */
+#map-graph .main-svg {
+  width: 100% !important;
+  height: 100% !important;
+}
