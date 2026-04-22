@@ -198,7 +198,7 @@ class QueryService:
         loc = (location or "malawi").strip()
 
         if loc.lower() == "malawi":
-            table = "health_facilities_mwi"
+            table = "health_facilities_mwi_osm"
         else:
             slug  = PROVINCE_SLUGS.get(
                 loc,

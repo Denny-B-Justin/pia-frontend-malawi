@@ -1,6 +1,6 @@
 # ── Map defaults ──────────────────────────────────────────────────────────────
-MALAWI_CENTER_LAT   = -13.5
-MALAWI_CENTER_LON   = 28.0
+MALAWI_CENTER_LAT   = -13.211
+MALAWI_CENTER_LON   = 34.303
 MAP_ZOOM            = 5.25
 PROVINCE_ZOOM       = 6.5          # default zoom when a province is selected
 
